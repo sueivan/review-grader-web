@@ -1,0 +1,17 @@
+{
+  "name": "文献综述作业评分器",
+  "short_name": "综述评分",
+  "description": "文献核验 + 六维评分 + AI 痕迹检测，全部在浏览器内完成，可离线使用",
+  "lang": "zh-CN",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f7fa",
+  "theme_color": "#2563eb",
+  "icons": [
+    { "src": "icon-192.png",          "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png",          "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

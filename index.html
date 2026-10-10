@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>文献综述作业评分器</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#2563eb" />
+<link rel="icon" type="image/png" href="icon-192.png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="综述评分" />
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>文献综述作业评分器 · 本地版</h1>
+    <p class="sub">无需 API Key，电脑双击即用；也可在手机浏览器中「添加到主屏幕」当作 App 安装。文献核验 + 六维评分 + AI 痕迹检测全部在本地完成，可离线使用。</p>
+  </header>
+
+  <div class="note">
+    <b>使用说明：</b>把学生交来的作业（.docx / .pdf / .md / .txt）拖入下方虚线框，选好作业类型，点「开始评分」。本工具不联网上传你的作业内容到任何第三方——CrossRef / PubMed 仅用于核对文献编号真伪。
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>1. 上传作业</h2>
+    <div id="drop" class="drop">
+      把作业文件拖到这里，或 <b>点击选择文件</b>
+      <input id="file" type="file" accept=".docx,.pdf,.md,.txt" style="display:none" />
+      <div class="hint">支持 .docx（Word）、.pdf、.md（Markdown）、.txt。也可直接把文字粘贴到下方文本框。</div>
+    </div>
+    <label class="field">或直接粘贴作业全文</label>
+    <textarea id="paste" placeholder="把作业正文粘贴到这里（与上传文件二选一）…"></textarea>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>2. 评分设置</h2>
+    <div class="cols2">
+      <div>
+        <label class="field">作业类型</label>
+        <select id="jobType">
+          <option value="review" selected>文献综述作业（默认）</option>
+          <option value="general">一般课程作业</option>
+        </select>
+        <div class="hint">文献综述作业会提高「文献检索与梳理」权重、降低「方法」权重。</div>
+      </div>
+      <div>
+        <label class="field">是否启用 AI 严格评分（可选）</label>
+        <select id="llmOn">
+          <option value="off" selected>关闭（纯规则，免 Key）</option>
+          <option value="on">开启（需填自己的 LLM Key）</option>
+        </select>
+        <div class="hint">开启后由大模型对学生的 AI 使用痕迹做严格研判，并生成导师级评语与可落地的改进建议（一次调用，消耗你自己的 Key 额度）。</div>
+      </div>
+    </div>
+
+    <div id="llmBox" class="hidden" style="margin-top:12px">
+      <div class="cols2">
+        <div>
+          <label class="field">Base URL</label>
+          <input id="llmBase" type="text" value="https://dashscope.aliyuncs.com/compatible-mode/v1" />
+        </div>
+        <div>
+          <label class="field">模型名</label>
+          <input id="llmModel" type="text" value="qwen-plus" />
+        </div>
+      </div>
+      <label class="field">API Key（仅存在本机浏览器，不会上传）</label>
+      <input id="llmKey" type="password" placeholder="sk-..." />
+      <div class="hint">可用通义千问 / DeepSeek / OpenAI 等任何 OpenAI 兼容接口；Key 仅保存在你这台电脑的浏览器 localStorage。</div>
+    </div>
+
+    <div class="row" style="margin-top:16px">
+      <button id="run" class="btn">开始评分</button>
+      <button id="sample" class="btn ghost">载入示例</button>
+      <span id="status" class="muted"></span>
+    </div>
+  </div>
+
+  <div id="out" class="hidden">
+    <div class="card">
+      <h2><span class="dot"></span>3. 评分结果</h2>
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <div class="muted" style="font-size:13px">综合得分</div>
+          <div class="score-big" id="total">—</div>
+        </div>
+        <div id="redline"></div>
+      </div>
+      <div id="dims" style="margin-top:14px"></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>4. AI 使用痕迹检测</h2>
+      <div id="aiReport"></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>5. 文献真实性核验</h2>
+      <div id="citeReport"></div>
+    </div>
+
+    <div class="card report" id="reportCard">
+      <h2><span class="dot"></span>6. 评语与建议</h2>
+      <div id="report"></div>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <div class="foot-title">软件开发：苏裕盛 教授 / 医学博士</div>
+    <div class="foot-legal"><b>法律声明：</b>本工具为教学辅助软件，评分结果仅供教师形成性反馈参考，不构成所在机构的正式成绩或学术不端认定依据；AI 使用痕迹检测（规则与大模型）仅提示疑点，须由教师结合面谈、现场改写等人工方式确认。文献核验调用 CrossRef / PubMed 官方接口，结果以数据库返回为准，受网络或跨域限制导致的「无法核验」不代表伪造。作业内容默认仅在用户本机浏览器内离线处理；若开启大模型评分，正文将发送至用户自行配置的 API 提供方，请遵守其隐私政策与所在机构的数据合规要求。</div>
+  </footer>
+</div>
+
+<!-- docx 解析（已离线打包） -->
+<script src="vendor/mammoth.browser.min.js"></script>
+<!-- pdf 解析（已本地化，离线可用） -->
+<script src="vendor/pdf.min.js"></script>
+<script src="app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.register('sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
